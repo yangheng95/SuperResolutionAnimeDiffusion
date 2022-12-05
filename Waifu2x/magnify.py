@@ -24,8 +24,8 @@ class ResolutionMagnifier:
                                      SEBlock=True, repeat_blocks=3, atrous=(1, 1, 1))
 
         self.model_cran_v2 = network_to_half(self.model_cran_v2)
-        self.checkpoint = findfile.find_cwd_file("CARN_model_checkpoint.pt", map_location='cpu')
-        self.model_cran_v2.load_state_dict(torch.load(self.checkpoint))
+        self.checkpoint = findfile.find_cwd_file("CARN_model_checkpoint.pt")
+        self.model_cran_v2.load_state_dict(torch.load(self.checkpoint, map_location='cpu'))
         # if use GPU, then comment out the next line so it can use fp16.
         self.model_cran_v2 = self.model_cran_v2.float().to(self.device)
         self.model_cran_v2.to(self.device)
