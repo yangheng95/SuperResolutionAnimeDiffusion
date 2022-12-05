@@ -1,0 +1,12 @@
+--extra-index-url https://download.pytorch.org/whl/cu113
+torch
+torchvision
+autocuda
+findfile
+pyabsa
+git+https://github.com/huggingface/diffusers.git
+scipy
+git+https://github.com/huggingface/transformers.git
+ftfy
+accelerate
+psutil
