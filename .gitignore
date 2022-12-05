@@ -29,6 +29,7 @@ experiments/
 tests/
 *.result.json
 .idea/
+imgs/
 
 # Embedding
 glove.840B.300d.txt

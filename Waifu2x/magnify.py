@@ -8,7 +8,6 @@
 # Copyright (C) 2021. All Rights Reserved.
 import autocuda
 import findfile
-from torch.cuda.amp import autocast
 from torchvision import transforms
 from .utils.prepare_images import *
 from .Models import *
@@ -29,16 +28,18 @@ class ResolutionMagnifier:
         # if use GPU, then comment out the next line so it can use fp16.
         self.model_cran_v2 = self.model_cran_v2.float().to(self.device)
         self.model_cran_v2.to(self.device)
+
     def magnify(self, img):
         # origin
         img_splitter = ImageSplitter(seg_size=64, scale_factor=2, boarder_pad_size=3)
         img_patches = img_splitter.split_img_tensor(img, scale_method=None, img_pad=0)
         with torch.no_grad():
-            if self.device!='cpu':
-                with autocast():
+            if self.device != 'cpu':
+                with torch.cuda.amp.autocast():
                     out = [self.model_cran_v2(i.to(self.device)) for i in img_patches]
             else:
-                out = [self.model_cran_v2(i).to(self.device) for i in img_patches]
+                with torch.cpu.amp.autocast():
+                    out = [self.model_cran_v2(i) for i in img_patches]
         img_upscale = img_splitter.merge_img_tensor(out)
 
         final = torch.cat([img_upscale])

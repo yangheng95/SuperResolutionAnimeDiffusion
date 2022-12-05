@@ -13,11 +13,14 @@ import datetime
 import time
 import psutil
 
+from Waifu2x.magnify import ResolutionMagnifier
+
 start_time = time.time()
 is_colab = utils.is_google_colab()
 
 device = autocuda.auto_cuda()
 
+magnifier = ResolutionMagnifier()
 
 class Model:
     def __init__(self, name, path="", prefix=""):
@@ -162,6 +165,8 @@ def txt_to_img(model_path, prompt, neg_prompt, guidance, steps, width, height, g
         width=width,
         height=height,
         generator=generator)
+    result.images[0] = magnifier.magnify(result.images[0])
+    result.images[0] = magnifier.magnify(result.images[0])
 
     # save image
     result.images[0].save("{}/{}.{}.{}.{}.{}.{}.{}.{}.png".format(saved_path,
@@ -213,6 +218,8 @@ def img_to_img(model_path, prompt, neg_prompt, img, strength, guidance, steps, w
         width=width,
         height=height,
         generator=generator)
+    result.images[0] = magnifier.magnify(result.images[0])
+    result.images[0] = magnifier.magnify(result.images[0])
 
     # save image
     result.images[0].save("{}/{}.{}.{}.{}.{}.{}.{}.{}.png".format(saved_path,
