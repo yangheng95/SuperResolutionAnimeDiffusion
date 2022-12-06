@@ -1,11 +1,14 @@
 # Super Resolution Anime Diffusion 
+
+
+# [Online Web Demo](https://huggingface.co/spaces/yangheng/Super-Resolution-Anime-Diffusion)
+
 This is demo forked from https://huggingface.co/Linaqruf/anything-v3.0.
 
 ## Super Resolution Anime Diffusion
 At this moment, many diffusion models can only generate <1024 width and length pictures.
 I integrated the Super Resolution with [Anything diffusion model](https://huggingface.co/Linaqruf/anything-v3.0) to produce high resolution pictures.
 Thanks to the open-source project: https://github.com/yu45020/Waifu2x
-
 
 
 ## Modifications
