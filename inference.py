@@ -1,3 +1,4 @@
+import os
 import random
 
 import autocuda
@@ -13,14 +14,14 @@ import datetime
 import time
 import psutil
 
-from Waifu2x.magnify import ResolutionMagnifier
+from Waifu2x.magnify import ImageMagnifier
 
 start_time = time.time()
 is_colab = utils.is_google_colab()
 
 device = autocuda.auto_cuda()
 
-magnifier = ResolutionMagnifier()
+magnifier = ImageMagnifier()
 
 class Model:
     def __init__(self, name, path="", prefix=""):
@@ -249,7 +250,8 @@ if __name__ == "__main__":
     # inference("DALL-E", "a dog", 0, 1000, 512, 512, 0, None, 0.5, "")
     model_name = "anything v3"
     saved_path = r"imgs"
-
+    if not os.path.exists(saved_path):
+        os.mkdir(saved_path)
     n = 0
     while True:
         prompt_keys = [
@@ -271,7 +273,7 @@ if __name__ == "__main__":
         img = None
         strength = 0.5
         neg_prompt = ""
-        inference(model_name, ''.join(prompt_keys), guidance, steps, width=width, height=height, seed=seed, img=img,
+        inference(model_name, '.'.join(prompt_keys), guidance, steps, width=width, height=height, seed=seed, img=img,
                   strength=strength, neg_prompt=neg_prompt)
         n += 1
         fprint(n)

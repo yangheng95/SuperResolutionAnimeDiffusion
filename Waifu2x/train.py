@@ -1,13 +1,13 @@
-from apex.fp16_utils import FP16_Optimizer
+
 from torch import optim
 from torch.utils.data import DataLoader
 from torchvision.utils import save_image
 from tqdm import trange
 
 from Dataloader import *
-from utils import image_quality
-from utils.cls import CyclicLR
-from utils.prepare_images import *
+from .utils import image_quality
+from .utils.cls import CyclicLR
+from .utils.prepare_images import *
 
 train_folder = './dataset/train'
 test_folder = "./dataset/test"
@@ -44,11 +44,11 @@ weight_decay = 1e-6
 optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay, amsgrad=True)
 # optimizer = optim.SGD(model.parameters(), momentum=0.9, nesterov=True, weight_decay=weight_decay, lr=learning_rate)
 
-optimizer = FP16_Optimizer(optimizer, static_loss_scale=128.0, verbose=False)
+# optimizer = FP16_Optimizer(optimizer, static_loss_scale=128.0, verbose=False)
 # optimizer.load_state_dict(torch.load("CARN_adam_checkpoint.pt"))
 
 last_iter = -1  # torch.load("CARN_scheduler_last_iter")
-scheduler = CyclicLR(optimizer.optimizer, base_lr=1e-4, max_lr=1e-4,
+scheduler = CyclicLR(optimizer, base_lr=1e-4, max_lr=1e-4,
                      step_size=3 * total_batch, mode="triangular",
                      last_batch_iteration=last_iter)
 train_loss = []

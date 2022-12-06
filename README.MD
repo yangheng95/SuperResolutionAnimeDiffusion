@@ -10,7 +10,15 @@ Thanks to the open-source project: https://github.com/yu45020/Waifu2x
 1. Disable the safety checker to save time and memory. You need to abide the original rules of the model.
 2. Add the Super Resolution function to the model.
 3. Add batch generation function to the model (see inference.py).
-4. 
+
+## Random Examples
+![Anime Girl](./random_examples/1.png)
+![Anime Girl](./random_examples/2.png)
+![Anime Girl](./random_examples/3.png)
+![Anime Girl](./random_examples/4.png)
+![Anime Girl](./random_examples/5.png)
+![Anime Girl](./random_examples/6.png)
+![Anime Girl](./random_examples/7.png)
 # Origin README
 ---
 language:

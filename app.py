@@ -12,9 +12,9 @@ import utils
 import datetime
 import time
 import psutil
-from Waifu2x.magnify import ResolutionMagnifier
+from Waifu2x.magnify import ImageMagnifier
 
-magnifier = ResolutionMagnifier()
+magnifier = ImageMagnifier()
 
 start_time = time.time()
 is_colab = utils.is_google_colab()
@@ -134,6 +134,11 @@ def inference(model_name, prompt, guidance, steps, width=512, height=512, seed=0
             return txt_to_img(model_path, prompt, neg_prompt, guidance, steps, width, height, generator, scale_factor), None
     except Exception as e:
         return None, error_str(e)
+    # if img is not None:
+    #     return img_to_img(model_path, prompt, neg_prompt, img, strength, guidance, steps, width, height,
+    #                       generator, scale_factor), None
+    # else:
+    #     return txt_to_img(model_path, prompt, neg_prompt, guidance, steps, width, height, generator, scale_factor), None
 
 
 def txt_to_img(model_path, prompt, neg_prompt, guidance, steps, width, height, generator, scale_factor):
@@ -167,9 +172,7 @@ def txt_to_img(model_path, prompt, neg_prompt, guidance, steps, width, height, g
         width=width,
         height=height,
         generator=generator)
-    while scale_factor > 1:
-        result.images[0] = magnifier.magnify(result.images[0])
-        scale_factor = scale_factor // 2
+    result.images[0] = magnifier.magnify(result.images[0], scale_factor=scale_factor)
 
     # save image
     result.images[0].save("imgs/result-{}.png".format(datetime.datetime.now().strftime("%Y%m%d-%H%M%S")))
@@ -212,9 +215,7 @@ def img_to_img(model_path, prompt, neg_prompt, img, strength, guidance, steps, w
         # width=width,
         # height=height,
         generator=generator)
-    while scale_factor > 1:
-        result.images[0] = magnifier.magnify(result.images[0])
-        scale_factor = scale_factor // 2
+    result.images[0] = magnifier.magnify(result.images[0], scale_factor=scale_factor)
 
     # save image
     result.images[0].save("imgs/result-{}.png".format(datetime.datetime.now().strftime("%Y%m%d-%H%M%S")))
@@ -236,19 +237,14 @@ css = """.finetuned-diffusion-div div{display:inline-flex;align-items:center;gap
 with gr.Blocks(css=css) as demo:
     if not os.path.exists('imgs'):
         os.mkdir('imgs')
-    gr.HTML(
-        f"""
-            <div class="finetuned-diffusion-div">
-              <div>
-                <h1>Super Resolution Anime Diffusion</h1>
-              </div>
-            </div>
-        """
-    )
+
+    gr.Markdown('# Super Resolution Anime Diffusion')
     gr.Markdown("# Author: [yangheng95](https://github.com/yangheng95)")
     gr.Markdown("# based on [Anything V3](https://huggingface.co/Linaqruf/anything-v3.0)")
     gr.Markdown(
-        "# Github: [https://github.com/yangheng95/AnimeDiffusion](https://github.com/yangheng95/AnimeDiffusion)")
+        "# Github: [SuperResolutionAnimeDiffusion](https://github.com/yangheng95/SuperResolutionAnimeDiffusion)")
+    gr.Markdown("# This demo is running on a CPU, so it will take at least 20 minutes. "
+                "If you have a GPU, you can clone from [Github](https://github.com/yangheng95/SuperResolutionAnimeDiffusion) and run it locally.")
     with gr.Row():
         with gr.Column(scale=55):
             with gr.Group():
@@ -266,6 +262,7 @@ with gr.Blocks(css=css) as demo:
                 with gr.Row():
                     prompt = gr.Textbox(label="Prompt", show_label=False, max_lines=2,
                                         placeholder="Enter prompt. Style applied automatically").style(container=False)
+                with gr.Row():
                     generate = gr.Button(value="Generate")
 
                 with gr.Row():
@@ -294,13 +291,13 @@ with gr.Blocks(css=css) as demo:
 
                         with gr.Row():
                             guidance = gr.Slider(label="Guidance scale", value=7.5, maximum=15)
-                            steps = gr.Slider(label="Steps", value=25, minimum=2, maximum=75, step=1)
+                            steps = gr.Slider(label="Steps", value=15, minimum=2, maximum=75, step=1)
 
                         with gr.Row():
-                            width = gr.Slider(label="Width", value=768, minimum=64, maximum=1024, step=8)
+                            width = gr.Slider(label="Width", value=512, minimum=64, maximum=1024, step=8)
                             height = gr.Slider(label="Height", value=512, minimum=64, maximum=1024, step=8)
                         with gr.Row():
-                            scale_factor = gr.Slider(2, 8, label='Scale factor should be integer (1, 2, 4, 8)', value=4, step=1)
+                            scale_factor = gr.Slider(2, 8, label='Scale factor should be integer (1, 2, 4, 8)', value=2, step=1)
 
                         seed = gr.Slider(0, 2147483647, label='Seed (0 = random)', value=0, step=1)
 
