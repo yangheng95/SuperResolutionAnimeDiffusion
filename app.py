@@ -2,6 +2,7 @@ import os
 import random
 
 import autocuda
+from pyabsa.utils.pyabsa_utils import fprint
 
 from diffusers import AutoencoderKL, UNet2DConditionModel, StableDiffusionPipeline, StableDiffusionImg2ImgPipeline, \
     DPMSolverMultistepScheduler
@@ -19,7 +20,10 @@ magnifier = ImageMagnifier()
 start_time = time.time()
 is_colab = utils.is_google_colab()
 
+CUDA_VISIBLE_DEVICES = ''
 device = autocuda.auto_cuda()
+
+dtype = torch.float16 if device != 'cpu' else torch.float32
 
 
 class Model:
@@ -65,21 +69,21 @@ current_model = models[1] if is_colab else models[0]
 current_model_path = current_model.path
 
 if is_colab:
-    pipe = StableDiffusionPipeline.from_pretrained(current_model.path, torch_dtype=torch.float16, scheduler=scheduler,
+    pipe = StableDiffusionPipeline.from_pretrained(current_model.path, torch_dtype=dtype, scheduler=scheduler,
                                                    safety_checker=lambda images, clip_input: (images, False))
 
 else:  # download all models
     print(f"{datetime.datetime.now()} Downloading vae...")
-    vae = AutoencoderKL.from_pretrained(current_model.path, subfolder="vae", torch_dtype=torch.float16)
+    vae = AutoencoderKL.from_pretrained(current_model.path, subfolder="vae", torch_dtype=dtype)
     for model in models:
         try:
             print(f"{datetime.datetime.now()} Downloading {model.name} model...")
-            unet = UNet2DConditionModel.from_pretrained(model.path, subfolder="unet", torch_dtype=torch.float16)
+            unet = UNet2DConditionModel.from_pretrained(model.path, subfolder="unet", torch_dtype=dtype)
             model.pipe_t2i = StableDiffusionPipeline.from_pretrained(model.path, unet=unet, vae=vae,
-                                                                     torch_dtype=torch.float16, scheduler=scheduler,
+                                                                     torch_dtype=dtype, scheduler=scheduler,
                                                                      safety_checker=None)
             model.pipe_i2i = StableDiffusionImg2ImgPipeline.from_pretrained(model.path, unet=unet, vae=vae,
-                                                                            torch_dtype=torch.float16,
+                                                                            torch_dtype=dtype,
                                                                             scheduler=scheduler, safety_checker=None)
         except Exception as e:
             print(f"{datetime.datetime.now()} Failed to load model " + model.name + ": " + str(e))
@@ -116,22 +120,23 @@ def on_model_change(model_name):
 
 def inference(model_name, prompt, guidance, steps, width=512, height=512, seed=0, img=None, strength=0.5,
               neg_prompt="", scale_factor=2):
-    print(psutil.virtual_memory())  # print memory usage
-
+    fprint(psutil.virtual_memory())  # print memory usage
+    fprint(f"Prompt: {prompt}")
     global current_model
     for model in models:
         if model.name == model_name:
             current_model = model
             model_path = current_model.path
 
-    generator = torch.Generator('cuda').manual_seed(seed) if seed != 0 else None
+    generator = torch.Generator(device).manual_seed(seed) if seed != 0 else None
 
     try:
         if img is not None:
             return img_to_img(model_path, prompt, neg_prompt, img, strength, guidance, steps, width, height,
                               generator, scale_factor), None
         else:
-            return txt_to_img(model_path, prompt, neg_prompt, guidance, steps, width, height, generator, scale_factor), None
+            return txt_to_img(model_path, prompt, neg_prompt, guidance, steps, width, height, generator,
+                              scale_factor), None
     except Exception as e:
         return None, error_str(e)
     # if img is not None:
@@ -151,7 +156,7 @@ def txt_to_img(model_path, prompt, neg_prompt, guidance, steps, width, height, g
         current_model_path = model_path
 
         if is_colab or current_model == custom_model:
-            pipe = StableDiffusionPipeline.from_pretrained(current_model_path, torch_dtype=torch.float16,
+            pipe = StableDiffusionPipeline.from_pretrained(current_model_path, torch_dtype=dtype,
                                                            scheduler=scheduler,
                                                            safety_checker=lambda images, clip_input: (images, False))
         else:
@@ -180,7 +185,7 @@ def txt_to_img(model_path, prompt, neg_prompt, guidance, steps, width, height, g
 
 
 def img_to_img(model_path, prompt, neg_prompt, img, strength, guidance, steps, width, height, generator, scale_factor):
-    print(f"{datetime.datetime.now()} img_to_img, model: {model_path}")
+    fprint(f"{datetime.datetime.now()} img_to_img, model: {model_path}")
 
     global last_mode
     global pipe
@@ -189,10 +194,10 @@ def img_to_img(model_path, prompt, neg_prompt, img, strength, guidance, steps, w
         current_model_path = model_path
 
         if is_colab or current_model == custom_model:
-            pipe = StableDiffusionImg2ImgPipeline.from_pretrained(current_model_path, torch_dtype=torch.float16,
+            pipe = StableDiffusionImg2ImgPipeline.from_pretrained(current_model_path, torch_dtype=dtype,
                                                                   scheduler=scheduler,
                                                                   safety_checker=lambda images, clip_input: (
-                                                                  images, False))
+                                                                      images, False))
         else:
             # pipe = pipe.to("cpu")
             pipe = current_model.pipe_i2i
@@ -239,12 +244,14 @@ with gr.Blocks(css=css) as demo:
         os.mkdir('imgs')
 
     gr.Markdown('# Super Resolution Anime Diffusion')
-    gr.Markdown("# Author: [yangheng95](https://github.com/yangheng95)")
-    gr.Markdown("# based on [Anything V3](https://huggingface.co/Linaqruf/anything-v3.0)")
     gr.Markdown(
-        "# Github: [SuperResolutionAnimeDiffusion](https://github.com/yangheng95/SuperResolutionAnimeDiffusion)")
-    gr.Markdown("# This demo is running on a CPU, so it will take at least 20 minutes. "
+        "## Author: [yangheng95](https://github.com/yangheng95)  Github:[Github](https://github.com/yangheng95/SuperResolutionAnimeDiffusion)")
+    gr.Markdown("### This demo is running on a CPU, so it will take at least 20 minutes. "
                 "If you have a GPU, you can clone from [Github](https://github.com/yangheng95/SuperResolutionAnimeDiffusion) and run it locally.")
+    gr.Markdown("### FYI: to generate a 512*512 image and magnify 4x, it only takes 5~8 seconds on a RTX 2080 GPU")
+    gr.Markdown(
+        "### You can duplicate this demo on HuggingFace Spaces, click [here](https://huggingface.co/spaces/yangheng/Super-Resolution-Anime-Diffusion?duplicate=true)")
+
     with gr.Row():
         with gr.Column(scale=55):
             with gr.Group():
@@ -297,7 +304,9 @@ with gr.Blocks(css=css) as demo:
                             width = gr.Slider(label="Width", value=512, minimum=64, maximum=1024, step=8)
                             height = gr.Slider(label="Height", value=512, minimum=64, maximum=1024, step=8)
                         with gr.Row():
-                            scale_factor = gr.Slider(2, 8, label='Scale factor should be integer (1, 2, 4, 8)', value=2, step=1)
+                            scale_factor = gr.Slider(1, 8, label='Scale factor (to magnify image) (1, 2, 4, 8)',
+                                                     value=2,
+                                                     step=1)
 
                         seed = gr.Slider(0, 2147483647, label='Seed (0 = random)', value=0, step=1)
 
@@ -306,10 +315,12 @@ with gr.Blocks(css=css) as demo:
         custom_model_path.change(custom_model_changed, inputs=custom_model_path, outputs=None)
     # n_images.change(lambda n: gr.Gallery().style(grid=[2 if n > 1 else 1], height="auto"), inputs=n_images, outputs=gallery)
 
+    gr.Markdown("### based on [Anything V3](https://huggingface.co/Linaqruf/anything-v3.0)")
+
     inputs = [model_name, prompt, guidance, steps, width, height, seed, image, strength, neg_prompt, scale_factor]
     outputs = [image_out, error_output]
     prompt.submit(inference, inputs=inputs, outputs=outputs)
-    generate.click(inference, inputs=inputs, outputs=outputs)
+    generate.click(inference, inputs=inputs, outputs=outputs, api_name="generate")
 
     prompt_keys = [
         'girl', 'lovely', 'cute', 'beautiful eyes', 'cumulonimbus clouds', 'sky', 'detailed fingers',
@@ -328,5 +339,5 @@ with gr.Blocks(css=css) as demo:
 print(f"Space built in {time.time() - start_time:.2f} seconds")
 
 if not is_colab:
-    demo.queue(concurrency_count=1)
-demo.launch(debug=is_colab, share=is_colab)
+    demo.queue(concurrency_count=2)
+demo.launch(debug=is_colab, enable_queue=True, share=is_colab)
