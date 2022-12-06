@@ -6,10 +6,34 @@ At this moment, many diffusion models can only generate <1024 width and length p
 I integrated the Super Resolution with [Anything diffusion model](https://huggingface.co/Linaqruf/anything-v3.0) to produce high resolution pictures.
 Thanks to the open-source project: https://github.com/yu45020/Waifu2x
 
+
+
 ## Modifications
 1. Disable the safety checker to save time and memory. You need to abide the original rules of the model.
 2. Add the Super Resolution function to the model.
 3. Add batch generation function to the model (see inference.py).
+
+## Install 
+1. Install [Anacona](https://www.anaconda.com/products/distribution) or [Miniconda](https://docs.conda.io/en/latest/miniconda.html)
+2. create a conda environment:
+```bash
+conda create -n diffusion python=3.9
+conda activate diffusion
+```
+3. install requirements:
+```ash
+conda install pytorch pytorch-cuda=11.7 -c pytorch -c nvidia
+pip install -r requirements.txt
+```
+4. Run web demo:
+```
+python app.py
+```
+5. or run batch anime-generation
+```
+python inference.py
+```
+see the soruce code for details, you can set scale factor to magnify pictures
 
 ## Random Examples
 ![Anime Girl](./random_examples/1.png)
