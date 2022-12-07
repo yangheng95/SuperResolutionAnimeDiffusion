@@ -121,6 +121,7 @@ def on_model_change(model_name):
 def inference(model_name, prompt, guidance, steps, width=512, height=512, seed=0, img=None, strength=0.5,
               neg_prompt="", scale_factor=2):
     fprint(psutil.virtual_memory())  # print memory usage
+    prompt = 'detailed fingers, beautiful hands,' + prompt
     fprint(f"Prompt: {prompt}")
     global current_model
     for model in models:
@@ -323,11 +324,11 @@ with gr.Blocks(css=css) as demo:
     generate.click(inference, inputs=inputs, outputs=outputs, api_name="generate")
 
     prompt_keys = [
-        'girl', 'lovely', 'cute', 'beautiful eyes', 'cumulonimbus clouds', 'sky', 'detailed fingers',
-        random.choice(['dress', 'skirt', 'pants', 'shorts', 'jeans', 'shirt', 't-shirt', 'sweater', 'coat', 'jacket']),
-        random.choice(['white hair', 'red hair', 'blonde hair', 'black hair', 'green hair', ]),
-        random.choice(['blue eyes', 'green eyes', 'red eyes', 'black eyes', 'yellow eyes', ]),
-        random.choice(['flower meadow', 'garden', 'city', 'river', 'beach']),
+        'girl', 'lovely', 'cute', 'beautiful eyes', 'cumulonimbus clouds', 'detailed fingers',
+        random.choice(['dress']),
+        random.choice(['white hair']),
+        random.choice(['blue eyes']),
+        random.choice(['flower meadow']),
         random.choice(['Elif', 'Angel'])
     ]
     prompt.value = ','.join(prompt_keys)
