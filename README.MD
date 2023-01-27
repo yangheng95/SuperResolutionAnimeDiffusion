@@ -1,14 +1,3 @@
----
-title: Anything V3.0
-emoji: 🏃
-colorFrom: gray
-colorTo: yellow
-sdk: gradio
-sdk_version: 3.10.1
-app_file: app.py
-pinned: false
----
-
 # Super Resolution Anime Diffusion 
 
 

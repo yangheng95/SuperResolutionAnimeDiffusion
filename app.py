@@ -1,10 +1,16 @@
 import os
 import random
 import zipfile
+import findfile
+
+for z_file in findfile.find_cwd_files(and_key=['.zip'],
+                                      exclude_key=['.ignore', 'git', 'SuperResolutionAnimeDiffusion'],
+                                      recursive=1):
+    with zipfile.ZipFile(z_file, 'r') as zip_ref:
+        zip_ref.extractall()
 
 import PIL.Image
 import autocuda
-import findfile
 from pyabsa.utils.pyabsa_utils import fprint
 
 from diffusers import (
@@ -34,9 +40,6 @@ device = autocuda.auto_cuda()
 
 dtype = torch.float16 if device != "cpu" else torch.float32
 
-for z_file in findfile.find_cwd_files(and_key=['.zip'], exclude_key=['.ignore'], recursive=1):
-    with zipfile.ZipFile(z_file, 'r') as zip_ref:
-        zip_ref.extractall()
 
 
 class Model:
