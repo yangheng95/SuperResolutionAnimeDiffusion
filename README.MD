@@ -1,7 +1,6 @@
 # Super Resolution Anime Diffusion 
 
-
-# [Online Web Demo](https://huggingface.co/spaces/yangheng/Super-Resolution-Anime-Diffusion)
+# The latest code can be clone from the [Online Web Demo](https://huggingface.co/spaces/yangheng/Super-Resolution-Anime-Diffusion)
 
 This is demo forked from https://huggingface.co/Linaqruf/anything-v3.0.
 
